@@ -43,28 +43,25 @@ uses Math;
 {$R *.dfm}
 
 procedure TFormMain.FormCreate(Sender: TObject);
-var i,j: integer;
-begin
-  StringGridResult.Cells[0,0] := '№';
-  StringGridResult.Cells[1,0] := 'Размерность с-мы N';
-  StringGridResult.Cells[2,0] := 'Диапазон значений L';
-  StringGridResult.Cells[3,0] := 'Max Aij';
-  StringGridResult.Cells[4,0] := 'Ср. число итераций';
-  StringGridResult.Cells[5,0] := 'Ср. оценка точности L';
-  StringGridResult.Cells[6,0] := 'Ср. мера точности r';
-  for i:=1 to 12 do
-    StringGridResult.Cells[0,i] := IntToStr(i);
-end;
-
-procedure InitV (var v:TVector; n:integer);
 var
-  i:integer;
+  i: Integer;
 begin
-  setlength (v, n);
+  with StringGridResult do begin
+    Cells[0,0] := '№';
+    Cells[1,0] := 'Размерность с-мы N';
+    Cells[2,0] := 'Диапазон значений L';
+    Cells[3,0] := 'Max Aij';
+    Cells[4,0] := 'Ср. число итераций';
+    Cells[5,0] := 'Ср. оценка точности L';
+    Cells[6,0] := 'Ср. мера точности r';
+    for i:=1 to 12 do
+      Cells[0,i] := IntToStr(i);
+  end;
 end;
 
 procedure InitM (var a:TMatrix;n:integer);
-var i,j:integer;
+var
+  i: Integer;
 begin
   setlength(a,n);
   for i:=0 to n-1 do
@@ -73,15 +70,12 @@ end;
 
 function MultiVect (A,B:TVector;n:integer):TMatrix;
 var
-  i,j,k:integer;
-  sum:real;
-  c:TMatrix;
+  i,j: Integer;
 begin
-  InitM(C,n);
+  InitM(Result,n);
   for i:=0 to n-1 do
     for j:=0 to n-1 do
-      C[i,j]:=A[i]*B[j];
-  Result:=C;
+      Result[i,j]:=A[i]*B[j];
 end;
 
 function trans (a:TMatrix;n:integer):TMatrix;
@@ -98,8 +92,7 @@ end;
 
 function MultiMatr (A,B:TMatrix;n:integer):TMatrix;
 var
-  i,j,k:integer; 
-  sum:real;
+  i,j,k: Integer;
 begin
  InitM(Result,n);
  for i:=0 to n-1 do
@@ -129,11 +122,11 @@ procedure TFormMain.GenerateA(var A:TMatrix; n, min_L, max_L:integer; var y:TVec
 var
   i,j:integer;
   x:TVector;
-  diag, T:TMatrix;
+  diag: TMatrix;
   sum:TType;
 begin
   //генерация собственных значений лямбда
-  InitV(y,n);
+  SetLength(y,n);
   randomize;
   for i:=0 to n-1 do
     y[i]:=random(max_L)-min_L+random;
@@ -146,7 +139,7 @@ begin
     diag [i,i]:=y[i];
 
   //генерация и нормирование вектора X
-  InitV(x,n); 
+  SetLength(x,n);
   sum:=0;
   for i:=0 to n-1 do begin
     x[i]:=random(5)+1;
@@ -170,16 +163,17 @@ begin
 end;
 
 procedure Method (var Bpred:TMatrix; var Bk:TMatrix; var T:TMatrix; n:integer);
-var imax, jmax, i,j:integer;  max, p, q,d,r,c,s,pr:TType;
-    cnew,snew:TType;  Tnew:TMatrix;
+var
+  imax, jmax, i,j:integer;
+  max, p, q,d,r,c,s,pr:TType;
+  Tnew:TMatrix;
 begin
   imax:=0;
   jmax:=1;
   max:=abs(Bpred[0,1]);
   for i:=0 to n-1 do
    for j:=i+1 to n-1 do
-    if abs(Bpred[i,j])>max then
-     begin
+     if abs(Bpred[i,j])>max then begin
        max:=abs(Bpred[i,j]);
        imax:=i;
        jmax:=j
@@ -188,17 +182,15 @@ begin
   p:= 2*BPred[imax,jmax];
   q:=Bpred[imax, imax]-Bpred[jmax,jmax];
   d:=sqrt(sqr(p)+sqr(q));
-  if q<>0 then
-   begin
-      r:=abs(q)/(2*d);
-      c:=sqrt(0.5+r);
-      s:=sqrt(0.5-r)*sign(p*q)
-   end
-  else
-   begin
-     c:=sqrt(2)/2;
-     s:=c;
-   end;
+  if q <> 0 then begin
+    r:=abs(q)/(2*d);
+    c:=sqrt(0.5+r);
+    s:=sqrt(0.5-r)*sign(p*q)
+  end
+  else begin
+    c:=sqrt(2)/2;
+    s:=c;
+  end;
 
   Bk[imax,imax]:=sqr(c)*Bpred[imax,imax]+sqr(s)*Bpred[jmax,jmax]+2*c*s*Bpred[imax,jmax];
   Bk[jmax,jmax]:=sqr(s)*Bpred[imax,imax]+sqr(c)*Bpred[jmax,jmax]-2*c*s*Bpred[imax,jmax];
@@ -210,18 +202,17 @@ begin
   pr:=(sqr(c)-sqr(s))*Bpred[imax, jmax]+c*s*(Bpred[jmax, imax]-Bpred[imax,imax]);
 
   for i:=0 to n-1 do
-   if (i<>imax) and (i<>jmax) then
-    begin
-       Bk[imax, i]:=c*Bpred[i,imax]+s*Bpred[i,jmax];
-       Bk[i,imax]:=Bk[imax,i];
-       Bk[jmax, i]:=-s*Bpred[i,imax]+c*Bpred[i,jmax];
-       Bk[i,jmax]:= Bk[jmax, i];
+    if (i<>imax) and (i<>jmax) then begin
+      Bk[imax, i]:=c*Bpred[i,imax]+s*Bpred[i,jmax];
+      Bk[i,imax]:=Bk[imax,i];
+      Bk[jmax, i]:=-s*Bpred[i,imax]+c*Bpred[i,jmax];
+      Bk[i,jmax]:= Bk[jmax, i];
     end;
 
   for i:=0 to n-1 do
-   for j:=0 to n-1 do
-    if (i<>imax) and (j<>jmax)and (i<>jmax)and (j<>imax) then
-     Bk[i,j]:=Bpred[i,j];
+    for j:=0 to n-1 do
+      if (i<>imax) and (j<>jmax)and (i<>jmax)and (j<>imax) then
+        Bk[i,j]:=Bpred[i,j];
 
   InitM (Tnew, n);
   for i:=0 to n-1 do
@@ -230,17 +221,17 @@ begin
   Tnew[imax, jmax]:=-s;
   Tnew[jmax, jmax]:=c;
   Tnew[jmax, imax]:=s;
-  T:=MultiMatr (T, Tnew, n);
+  T:=MultiMatr(T, Tnew, n);
 end;
 
-procedure pogresh (lyambda, sobst:TVector; var pogr:TType; n:integer);
-var i,j,js:integer; find:array of boolean; min:TVector;
+procedure pogresh (lambda, sobst:TVector; var pogr:TType; n:integer);
+var
+  i: Integer;
 begin
   pogr:=0;
   for i:=0 to n-1 do
-   if abs(lyambda[i]-sobst[i])>pogr then
-     pogr:=abs(lyambda[i]-sobst[i]);
-
+   if abs(lambda[i]-sobst[i])>pogr then
+     pogr:=abs(lambda[i]-sobst[i]);
 end;
 
 Procedure TFormMain.Jacobi (n:integer; A:TMatrix; max_aij:TType; var k:integer; var sr_oc_toch_L:TType; var sr_mera_toch_r:TType; lyambda:TVector);
@@ -259,16 +250,16 @@ Procedure TFormMain.Jacobi (n:integer; A:TMatrix; max_aij:TType; var k:integer; 
       end;
       i:=i+1;
       j:=0;
-     end;
+    end;
     DiagMatr:=ok;
   end;
 
 var
-  i,j,w:integer;
+  i,j: Integer;
   M:integer;
   T:TMatrix;
   sobst:TVector;
-  r, max:TType;
+  max:TType;
   Bpred, bk, diag, TD,AT:TMatrix;
 begin
   M:=10000;
@@ -276,8 +267,7 @@ begin
   InitM (T, n);
   for i:=0 to n-1 do
     T[i,i]:=1;
-  InitV(sobst, n);
-  r:=0;
+  SetLength(sobst, n);
   InitM(Bpred, n);
   InitM(Bk, n);
   for i:=0 to n-1 do
@@ -292,14 +282,14 @@ begin
     for i:=0 to n-1 do
       for j:=0 to n-1 do
         Bpred[i,j]:=Bk[i,j];
-     end;    
+  end;
 
   InitM(diag, n);
 
   for i:=0 to n-1 do begin
     sobst[i]:=bk[i,i];
     diag[i,i]:=bk[i,i];
-   end;
+  end;
 
   InitM(TD, n);
   InitM(AT, n);
@@ -319,10 +309,10 @@ end;
 procedure TFormMain.ButtonTestClick(Sender: TObject);
 var
   k, i: integer;
-  pogr, sr_oc_toch_L, sr_mera_toch_r: TType;
-  lyambda: TVector;
-  matr_oc_L, matr_mera:array[1..10] of TType;
-  matr_k:array[1..10] of integer;
+  sr_oc_toch_L, sr_mera_toch_r: TType;
+  lambda: TVector;
+  matr_oc_L, matr_mera: array[1..Tests] of TType;
+  matr_k: array[1..Tests] of integer;
   rank, range, eps, line: Integer;
 begin
   line := 1;
@@ -337,21 +327,23 @@ begin
           matr_oc_L[i]:=0;
           matr_mera[i]:=0;
           InitM(A, Ranks[rank]);
-          GenerateA(A, Ranks[rank], -Ranges[range], Ranges[range], lyambda);
-          Jacobi(Ranks[rank], A, Epsilons[eps],matr_k[i],matr_oc_L[i], matr_mera[i], lyambda);
+          GenerateA(A, Ranks[rank], -Ranges[range], Ranges[range], lambda);
+          Jacobi(Ranks[rank], A, Epsilons[eps],matr_k[i],matr_oc_L[i], matr_mera[i], lambda);
           sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
           sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
           k:=k+matr_k[i];
         end;
         sr_oc_toch_L:=sr_oc_toch_L/Tests;
         sr_mera_toch_r:=sr_mera_toch_r/Tests;
-        k:=round (k/Tests);
-        StringGridResult.Cells[1, line] := IntToStr(Ranks[rank]);
-        StringGridResult.Cells[2, line] := IntToStr(-Ranges[range])+'...'+IntToStr(Ranges[range]);
-        StringGridResult.Cells[3, line] := FloatToStr(Epsilons[eps]);
-        StringGridResult.Cells[4, line] := IntToStr(k);
-        StringGridResult.Cells[5, line] := FloatToStr(sr_oc_toch_L);
-        StringGridResult.Cells[6, line] := FloatToStr(sr_mera_toch_r);
+        k:=round(k/Tests);
+        with StringGridResult do begin
+          Cells[1, line] := IntToStr(Ranks[rank]);
+          Cells[2, line] := IntToStr(-Ranges[range])+'...'+IntToStr(Ranges[range]);
+          Cells[3, line] := FloatToStr(Epsilons[eps]);
+          Cells[4, line] := IntToStr(k);
+          Cells[5, line] := FloatToStr(sr_oc_toch_L);
+          Cells[6, line] := FloatToStr(sr_mera_toch_r);
+        end;
         Application.ProcessMessages;
         line := line + 1;
       end;
