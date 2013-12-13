@@ -44,13 +44,13 @@ procedure TFormMain.FormCreate(Sender: TObject);
 var
   i,j: integer;
 begin
-  StringGridResult.Cells[0,0] := '¹';
-  StringGridResult.Cells[1,0] := 'Ðàçìåðíîñòü ñ-ìû N';
-  StringGridResult.Cells[2,0] := 'Äèàïàçîí çíà÷åíèé L';
+  StringGridResult.Cells[0,0] := '№';
+  StringGridResult.Cells[1,0] := 'Размерность с-мы N';
+  StringGridResult.Cells[2,0] := 'Диапазон значений L';
   StringGridResult.Cells[3,0] := '     Max Aij';
-  StringGridResult.Cells[4,0] := 'Ñð. ÷èñëî èòåðàöèé';
-  StringGridResult.Cells[5,0] := 'Ñð. îöåíêà òî÷íîñòè L';
-  StringGridResult.Cells[6,0] := 'Ñð. ìåðà òî÷íîñòè r';
+  StringGridResult.Cells[4,0] := 'Ср. число итераций';
+  StringGridResult.Cells[5,0] := 'Ср. оценка точности L';
+  StringGridResult.Cells[6,0] := 'Ср. мера точности r';
   for i:=1 to 12 do
     StringGridResult.Cells[0,i] := IntToStr(i);
 end;
@@ -118,7 +118,7 @@ begin
   MultiMatr:=C;
 end;
 
-//ñîðòèðîâêà âåêòîðà (çà÷åì?)
+//сортировка вектора (зачем?)
 procedure Upor (var M:TVector; n:integer);
 var
   i,j:integer;
@@ -140,46 +140,46 @@ var
     diag,XXt, E, T:TMatr;
     sum:TElem;
 begin
-  //ãåíåðàöèÿ ñîáñòâåííûõ çíà÷åíèé ëÿìáäà
+  //генерация собственных значений лямбда
   InitV(y,n);
   randomize;
   for i:=0 to n-1 do
     y[i]:=random(max_L)-min_L+random;
   Upor (y,n);
 
-  //äèàãîíàëüíàÿ ìàòðèöà ëÿìáäà, íà åå äèàãîíàëè ñòîÿò ñîáñòâåííûå çíà÷åíèÿ
+  //диагональная матрица лямбда, на ее диагонали стоят собственные значения
   InitM(diag,n);
   for i:=0 to n-1 do
     diag [i,i]:=y[i];
 
-  //ãåíåðàöèÿ âåêòîðà
+  //генерация вектора
   InitV(x,n);
   for i:=0 to n-1 do
     x[i]:=random(5)+1;
 
-  //íîðìèðîâàíèå âåêòîðà x
+  //нормирование вектора x
   sum := 0;
   for i:=0 to n-1 do
     sum := sum+x[i]*x[i];
   for i:=0 to n-1 do
     x[i]:=x[i]/sqrt(sum);
 
-  //ïåðåìíîæåíèå âåêòîðà õ íà òðàíñïîíèðîâàííûé õ
+  //перемножение вектора х на транспонированный х
   InitM(XXt,n);
   XXt:=MultiVect(X, X,n);
 
-  //åäèíè÷íàÿ ìàòðèöà
+  //единичная матрица
   InitM(E,n);
   for i:=0 to n-1 do
    E[i,i]:=1;
 
-  //ïîëó÷åíèå ìàòðèöû Õàóñõîëäåðà
+  //получение матрицы Хаусхолдера
   InitM(H,n);
   for i:=0 to n-1 do
     for j:=0 to n-1 do
-      H[i,j]:= E[i,j]-2*XXt[i,j]; //èçìåíèòü íà ñîîòâåòñòâóþùèé ýëåìåíò
+      H[i,j]:= E[i,j]-2*XXt[i,j]; //изменить на соответствующий элемент
 
-  //ïîëó÷åíèå ìàòðèöû À
+  //получение матрицы А
   A:=MultiMatr(MultiMatr(H,diag,n),trans(H,n),n);
 end;
 
@@ -218,7 +218,7 @@ begin
   Bk[jmax,jmax]:=sqr(s)*Bpred[imax,imax]+sqr(c)*Bpred[jmax,jmax]-2*c*s*Bpred[imax,jmax];
   Bk[imax,jmax]:=0;
   Bk[jmax,imax]:=0;
-  //ïðîâåðêà
+  //проверка
   pr:=(sqr(c)-sqr(s))*Bpred[imax, jmax]+c*s*(Bpred[jmax, imax]-Bpred[imax,imax]);
   for i:=0 to n-1 do
     if (i<>imax) and (i<>jmax) then begin
@@ -254,7 +254,7 @@ begin
 end;
 
 Procedure TFormMain.Jacobi (n:integer; A:TMAtr; max_aij:TElem; var k:integer; var sr_oc_toch_L:TElem; var sr_mera_toch_r:TElem; lyambda:TVector);
-//ïðîâåðêà, ÿâëÿåòñÿ ëè ìàòðèöà äèàãîíàëüíîé
+//проверка, является ли матрица диагональной
   function DiagMatr (var A:Tmatr; n:integer):boolean;
   var
     ok:boolean;
@@ -290,7 +290,7 @@ var
   diag, TD,AT:TMatr;
 begin
   M:=10000;
-  //ïåðâîíà÷àëüíî åäèíè÷íàÿ ìàòðèöà
+  //первоначально единичная матрица
   InitM (T, n);
   for i:=0 to n-1 do
     T[i,i]:=1;
