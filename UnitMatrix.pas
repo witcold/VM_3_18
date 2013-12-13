@@ -24,13 +24,11 @@ type
     procedure ButtonTestClick(Sender: TObject);
     Procedure Jacobi (n:integer; A:TMatrix; max_aij:TType; var k:integer; var sr_oc_toch_L:TType; var sr_mera_toch_r:TType; lyambda:TVector);
     procedure GenerateA(var A:TMatrix; n, min_L, max_L:integer; var y:TVector);
-
   private
     { Private declarations }
   public
     { Public declarations }
   end;
-
 
 var
   FormMain: TFormMain;
@@ -54,63 +52,60 @@ begin
     Cells[4,0] := 'Ср. число итераций';
     Cells[5,0] := 'Ср. оценка точности L';
     Cells[6,0] := 'Ср. мера точности r';
-    for i:=1 to 12 do
+    for i := 1 to 12 do
       Cells[0,i] := IntToStr(i);
   end;
 end;
 
-procedure InitM (var a:TMatrix;n:integer);
+procedure InitM(var a: TMatrix; n:integer);
 var
   i: Integer;
 begin
   setlength(a,n);
-  for i:=0 to n-1 do
+  for i := 0 to n-1 do
     setlength (a[i], n);
 end;
 
-function MultiVect (A,B:TVector;n:integer):TMatrix;
+function MultiVect(A,B: TVector; n:integer): TMatrix;
 var
-  i,j: Integer;
+  i, j: Integer;
 begin
   InitM(Result,n);
-  for i:=0 to n-1 do
-    for j:=0 to n-1 do
+  for i := 0 to n-1 do
+    for j := 0 to n-1 do
       Result[i,j]:=A[i]*B[j];
 end;
 
-function trans (a:TMatrix;n:integer):TMatrix;
+function trans(a: TMatrix; n: Integer): TMatrix;
 var 
-  i,j:integer;  
-  tr:TMatrix;
+  i, j:integer;
 begin
-  InitM(tr,n);
-  for i:=0 to n-1 do
-    for j:=0 to n-1 do
-      tr[i,j]:=a[j,i];
-  Result:=tr;
+  InitM(Result, n);
+  for i := 0 to n-1 do
+    for j := 0 to n-1 do
+      Result[i,j] := a[j,i];
 end;
 
-function MultiMatr (A,B:TMatrix;n:integer):TMatrix;
+function MultiMatr(A,B: TMatrix; n:integer): TMatrix;
 var
-  i,j,k: Integer;
+  i, j, k: Integer;
 begin
- InitM(Result,n);
- for i:=0 to n-1 do
-  for j:=0 to n-1 do
-   begin
-     Result[i,j]:=0;
-     for k:=0 to n-1 do
-      Result[i,j] := Result[i,j] + A[i][k]*B[k][j];
-   end;
+  InitM(Result,n);
+  for i := 0 to n-1 do
+    for j := 0 to n-1 do begin
+      Result[i,j] := 0;
+      for k := 0 to n-1 do
+        Result[i,j] := Result[i,j] + A[i,k]*B[k,j];
+    end;
 end;
 
-procedure Upor (var M:TVector; n:integer);
+procedure Upor(var M: TVector; n: Integer);
 var 
-  i,j: integer;
+  i, j: integer;
   t: TType;
 begin
-  for j:=0 to n-2 do
-    for i:=0 to n-j-2 do
+  for j := 0 to n-2 do
+    for i := 0 to n-j-2 do
       if M[i] > M[i+1] then begin
         t := M[i];
         M[i] := M[i+1];
@@ -120,10 +115,10 @@ end;
 
 procedure TFormMain.GenerateA(var A:TMatrix; n, min_L, max_L:integer; var y:TVector);
 var
-  i,j:integer;
-  x:TVector;
+  i,j: integer;
+  x: TVector;
   diag: TMatrix;
-  sum:TType;
+  sum: TType;
 begin
   //генерация собственных значений лямбда
   SetLength(y,n);
@@ -139,57 +134,56 @@ begin
     diag [i,i]:=y[i];
 
   //генерация и нормирование вектора X
-  SetLength(x,n);
+  SetLength(x, n);
   sum:=0;
   for i:=0 to n-1 do begin
     x[i]:=random(5)+1;
-    sum:=sum+x[i]*x[i];
+    sum:=sum + x[i]*x[i];
   end;
   sum := 1/sqrt(sum);
   for i:=0 to n-1 do
     x[i]:=x[i]*sum;
 
-
   //получение матрицы Хаусхолдера
   InitM(H,n);
   for i:=0 to n-1 do
     for j:=0 to n-1 do
-     if i=j then
+     if i = j then
        H[i,j]:=1-2*X[i]*X[j]
      else
        H[i,j]:=-2*X[i]*X[j];
   //получение матрицы А
-  A:=MultiMatr(MultiMatr(H,diag,n),trans(H,n),n);
+  A := MultiMatr(MultiMatr(H,diag,n), trans(H,n),n);
 end;
 
-procedure Method (var Bpred:TMatrix; var Bk:TMatrix; var T:TMatrix; n:integer);
+procedure Method (var Bpred, Bk, T:TMatrix; n:integer);
 var
-  imax, jmax, i,j:integer;
-  max, p, q,d,r,c,s,pr:TType;
-  Tnew:TMatrix;
+  imax, jmax, i, j: integer;
+  max, p, q, d, r, c, s, pr: TType;
+  Tnew: TMatrix;
 begin
-  imax:=0;
-  jmax:=1;
-  max:=abs(Bpred[0,1]);
-  for i:=0 to n-1 do
-   for j:=i+1 to n-1 do
-     if abs(Bpred[i,j])>max then begin
-       max:=abs(Bpred[i,j]);
-       imax:=i;
-       jmax:=j
+  imax := 0;
+  jmax := 1;
+  max := abs(Bpred[0,1]);
+  for i := 0 to n-1 do
+   for j := i+1 to n-1 do
+     if abs(Bpred[i,j]) > max then begin
+       max := abs(Bpred[i,j]);
+       imax := i;
+       jmax := j
      end;
 
-  p:= 2*BPred[imax,jmax];
-  q:=Bpred[imax, imax]-Bpred[jmax,jmax];
-  d:=sqrt(sqr(p)+sqr(q));
+  p := 2*BPred[imax, jmax];
+  q := Bpred[imax, imax] - Bpred[jmax, jmax];
+  d := sqrt(sqr(p) + sqr(q));
   if q <> 0 then begin
-    r:=abs(q)/(2*d);
-    c:=sqrt(0.5+r);
-    s:=sqrt(0.5-r)*sign(p*q)
+    r := abs(q)/(2*d);
+    c := sqrt(0.5+r);
+    s := sqrt(0.5-r)*sign(p*q)
   end
   else begin
-    c:=sqrt(2)/2;
-    s:=c;
+    c := sqrt(2)/2;
+    s := c;
   end;
 
   Bk[imax,imax]:=sqr(c)*Bpred[imax,imax]+sqr(s)*Bpred[jmax,jmax]+2*c*s*Bpred[imax,jmax];
@@ -203,57 +197,38 @@ begin
 
   for i:=0 to n-1 do
     if (i<>imax) and (i<>jmax) then begin
-      Bk[imax, i]:=c*Bpred[i,imax]+s*Bpred[i,jmax];
-      Bk[i,imax]:=Bk[imax,i];
-      Bk[jmax, i]:=-s*Bpred[i,imax]+c*Bpred[i,jmax];
-      Bk[i,jmax]:= Bk[jmax, i];
+      Bk[imax, i] := c*Bpred[i,imax]+s*Bpred[i,jmax];
+      Bk[i, imax] := Bk[imax,i];
+      Bk[jmax, i] := -s*Bpred[i,imax]+c*Bpred[i,jmax];
+      Bk[i, jmax] := Bk[jmax, i];
     end;
 
-  for i:=0 to n-1 do
-    for j:=0 to n-1 do
-      if (i<>imax) and (j<>jmax)and (i<>jmax)and (j<>imax) then
-        Bk[i,j]:=Bpred[i,j];
+  for i := 0 to n-1 do
+    for j := 0 to n-1 do
+      if (i <> imax) and (j <> jmax) and (i <> jmax) and (j<>imax) then
+        Bk[i,j] := Bpred[i,j];
 
-  InitM (Tnew, n);
-  for i:=0 to n-1 do
-    Tnew[i,i]:=1;
-  Tnew[imax, imax]:=c;
-  Tnew[imax, jmax]:=-s;
-  Tnew[jmax, jmax]:=c;
-  Tnew[jmax, imax]:=s;
-  T:=MultiMatr(T, Tnew, n);
+  InitM(Tnew, n);
+  for i := 0 to n-1 do
+    Tnew[i,i] := 1;
+  Tnew[imax, imax] := c;
+  Tnew[imax, jmax] := -s;
+  Tnew[jmax, jmax] := c;
+  Tnew[jmax, imax] := s;
+  T := MultiMatr(T, Tnew, n);
 end;
 
 procedure Pogresh (lambda, sobst:TVector; var pogr: TType; n: Integer);
 var
   i: Integer;
 begin
-  pogr:=0;
-  for i:=0 to n-1 do
+  pogr := 0;
+  for i := 0 to n-1 do
     if abs(lambda[i]-sobst[i]) > pogr then
-      pogr:=abs(lambda[i] - sobst[i]);
+      pogr := abs(lambda[i] - sobst[i]);
 end;
 
-Procedure TFormMain.Jacobi (n:integer; A:TMatrix; max_aij:TType; var k:integer; var sr_oc_toch_L:TType; var sr_mera_toch_r:TType; lyambda:TVector);
-//проверка, является ли матрица диагональной
-  function DiagMatr (var A:TMatrix; n:integer):boolean;
-  var  ok:boolean; i,j:integer;
-  begin
-    ok:=true;
-    i:=0; j:=0;
-    while ok and (i<=n-1) do begin
-      while ok and (j<=n-1) do begin
-        if i=j then ok:=true
-        else if abs(A[i,j])<max_aij  then ok:=true
-        else ok:=false;
-        j:=j+1;
-      end;
-      i:=i+1;
-      j:=0;
-    end;
-    DiagMatr:=ok;
-  end;
-
+Procedure TFormMain.Jacobi (n:integer; A:TMatrix; max_aij:TType; var k:integer; var sr_oc_toch_L, sr_mera_toch_r:TType; lyambda:TVector);
 var
   i,j: Integer;
   M:integer;
@@ -261,12 +236,31 @@ var
   sobst:TVector;
   max:TType;
   Bpred, bk, diag, TD,AT:TMatrix;
+  
+  // Проверка, является ли матрица диагональной
+  function DiagMatr (var A: TMatrix; n:integer): Boolean;
+  var
+    i, j: Integer;
+  begin
+    Result := True;
+    i := 0;
+    while Result and (i <= n-1) do begin
+      j:=0;
+      while Result and (j <= n-1) do
+        if (i <> j) and (abs(A[i,j]) > max_aij) then
+          Result := False
+        else
+          Inc(j);
+      Inc(i);
+    end;
+  end;
+
 begin
   M:=10000;
   //первоначально единичная матрица
-  InitM (T, n);
-  for i:=0 to n-1 do
-    T[i,i]:=1;
+  InitM(T, n);
+  for i := 0 to n-1 do
+    T[i,i] := 1;
   SetLength(sobst, n);
   InitM(Bpred, n);
   InitM(Bk, n);
@@ -276,7 +270,7 @@ begin
       Bk[i,j]:=A[i,j];
     end;
 
-  while not DiagMatr (Bpred, n) and (k<=M) do begin
+  while not DiagMatr (Bpred, n) and (k <= M) do begin
     Method (BPred, Bk, T, n);
     k:=k+1;
     for i:=0 to n-1 do
