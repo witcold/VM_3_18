@@ -6,6 +6,11 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Grids, Buttons;
 
+const
+  Ranks: array [1..2] of Integer = (10, 20);
+  Ranges: array [1..2] of Integer = (2, 50);
+  Epsilons: array [1..3] of Double = (1E-5, 1E-7, 1E-9);
+
 type
   TElem = real;
   TMatr = array of array of TElem;
@@ -39,13 +44,13 @@ procedure TFormMain.FormCreate(Sender: TObject);
 var
   i,j: integer;
 begin
-  StringGridResult.Cells[0,0] := '№';
-  StringGridResult.Cells[1,0] := 'Размерность с-мы N';
-  StringGridResult.Cells[2,0] := 'Диапазон значений L';
+  StringGridResult.Cells[0,0] := '¹';
+  StringGridResult.Cells[1,0] := 'Ðàçìåðíîñòü ñ-ìû N';
+  StringGridResult.Cells[2,0] := 'Äèàïàçîí çíà÷åíèé L';
   StringGridResult.Cells[3,0] := '     Max Aij';
-  StringGridResult.Cells[4,0] := 'Ср. число итераций';
-  StringGridResult.Cells[5,0] := 'Ср. оценка точности L';
-  StringGridResult.Cells[6,0] := 'Ср. мера точности r';
+  StringGridResult.Cells[4,0] := 'Ñð. ÷èñëî èòåðàöèé';
+  StringGridResult.Cells[5,0] := 'Ñð. îöåíêà òî÷íîñòè L';
+  StringGridResult.Cells[6,0] := 'Ñð. ìåðà òî÷íîñòè r';
   for i:=1 to 12 do
     StringGridResult.Cells[0,i] := IntToStr(i);
 end;
@@ -113,7 +118,7 @@ begin
   MultiMatr:=C;
 end;
 
-//сортировка вектора (зачем?)
+//ñîðòèðîâêà âåêòîðà (çà÷åì?)
 procedure Upor (var M:TVector; n:integer);
 var
   i,j:integer;
@@ -135,46 +140,46 @@ var
     diag,XXt, E, T:TMatr;
     sum:TElem;
 begin
-  //генерация собственных значений лямбда
+  //ãåíåðàöèÿ ñîáñòâåííûõ çíà÷åíèé ëÿìáäà
   InitV(y,n);
   randomize;
   for i:=0 to n-1 do
     y[i]:=random(max_L)-min_L+random;
   Upor (y,n);
 
-  //диагональная матрица лямбда, на ее диагонали стоят собственные значения
+  //äèàãîíàëüíàÿ ìàòðèöà ëÿìáäà, íà åå äèàãîíàëè ñòîÿò ñîáñòâåííûå çíà÷åíèÿ
   InitM(diag,n);
   for i:=0 to n-1 do
     diag [i,i]:=y[i];
 
-  //генерация вектора
+  //ãåíåðàöèÿ âåêòîðà
   InitV(x,n);
   for i:=0 to n-1 do
     x[i]:=random(5)+1;
 
-  //нормирование вектора x
+  //íîðìèðîâàíèå âåêòîðà x
   sum := 0;
   for i:=0 to n-1 do
     sum := sum+x[i]*x[i];
   for i:=0 to n-1 do
     x[i]:=x[i]/sqrt(sum);
 
-  //перемножение вектора х на транспонированный х
+  //ïåðåìíîæåíèå âåêòîðà õ íà òðàíñïîíèðîâàííûé õ
   InitM(XXt,n);
   XXt:=MultiVect(X, X,n);
 
-  //единичная матрица
+  //åäèíè÷íàÿ ìàòðèöà
   InitM(E,n);
   for i:=0 to n-1 do
    E[i,i]:=1;
 
-  //получение матрицы Хаусхолдера
+  //ïîëó÷åíèå ìàòðèöû Õàóñõîëäåðà
   InitM(H,n);
   for i:=0 to n-1 do
     for j:=0 to n-1 do
-      H[i,j]:= E[i,j]-2*XXt[i,j]; //изменить на соответствующий элемент
+      H[i,j]:= E[i,j]-2*XXt[i,j]; //èçìåíèòü íà ñîîòâåòñòâóþùèé ýëåìåíò
 
-  //получение матрицы А
+  //ïîëó÷åíèå ìàòðèöû À
   A:=MultiMatr(MultiMatr(H,diag,n),trans(H,n),n);
 end;
 
@@ -213,7 +218,7 @@ begin
   Bk[jmax,jmax]:=sqr(s)*Bpred[imax,imax]+sqr(c)*Bpred[jmax,jmax]-2*c*s*Bpred[imax,jmax];
   Bk[imax,jmax]:=0;
   Bk[jmax,imax]:=0;
-  //проверка
+  //ïðîâåðêà
   pr:=(sqr(c)-sqr(s))*Bpred[imax, jmax]+c*s*(Bpred[jmax, imax]-Bpred[imax,imax]);
   for i:=0 to n-1 do
     if (i<>imax) and (i<>jmax) then begin
@@ -249,7 +254,7 @@ begin
 end;
 
 Procedure TFormMain.Jacobi (n:integer; A:TMAtr; max_aij:TElem; var k:integer; var sr_oc_toch_L:TElem; var sr_mera_toch_r:TElem; lyambda:TVector);
-//проверка, является ли матрица диагональной
+//ïðîâåðêà, ÿâëÿåòñÿ ëè ìàòðèöà äèàãîíàëüíîé
   function DiagMatr (var A:Tmatr; n:integer):boolean;
   var
     ok:boolean;
@@ -285,7 +290,7 @@ var
   diag, TD,AT:TMatr;
 begin
   M:=10000;
-  //первоначально единичная матрица
+  //ïåðâîíà÷àëüíî åäèíè÷íàÿ ìàòðèöà
   InitM (T, n);
   for i:=0 to n-1 do
     T[i,i]:=1;
@@ -326,388 +331,46 @@ end;
 
 procedure TFormMain.ButtonTestClick(Sender: TObject);
 var
-  n, k, min_L, max_L, i: integer;
-  pogr, max_aij, sr_oc_toch_L, sr_mera_toch_r: telem;
-  lyambda:TVector;
+  k, i: integer;
+  pogr, sr_oc_toch_L, sr_mera_toch_r: telem;
+  lyambda: TVector;
   matr_oc_L, matr_mera:array[1..10] of TElem;
   matr_k:array[1..10] of integer;
+  rank, range, eps, line: Integer;
 begin
-  n:=10;
-  min_L:=-2;
-  max_L:=2;
-  max_aij:=1E-5;
-  k:=0;
-  sr_oc_toch_L:=0;
-  sr_mera_toch_r:=0;
-  for i:=1 to 10 do begin
-    matr_k[i]:=0;
-    matr_oc_L[i]:=0;
-    matr_mera[i]:=0;
-  end;
-  for i:=1 to 10 do begin
-    InitM(A,n);
-    GenerateA(A,n, min_L, max_L, lyambda);
-    Jacobi(n,A,max_aij,matr_k[i],matr_oc_L[i], matr_mera[i], lyambda);
-  end;
-  for i:=1 to 10 do begin
-    sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
-    sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
-    k:=k+matr_k[i];
-  end;
-  sr_oc_toch_L:=sr_oc_toch_L/10;
-  sr_mera_toch_r:=sr_mera_toch_r/10;
-  k:=round (k/10);
-  StringGridResult.Cells[1,1] := IntToStr(n);
-  StringGridResult.Cells[2,1] := IntToStr(min_L)+'...'+IntToStr(max_L);
-  StringGridResult.Cells[3,1] := FloatToStr(max_aij);
-  StringGridResult.Cells[4,1] := IntToStr(k);
-  StringGridResult.Cells[5,1] := FloatToStr(sr_oc_toch_L);
-  StringGridResult.Cells[6,1] := FloatToStr(sr_mera_toch_r);
-////////////////////////////////////////////////////////////////////////////
-  n:=10;
-  min_L:=-2;
-  max_L:=2;
-  max_aij:=1E-7;
-  k:=0;
-  sr_oc_toch_L:=0;
-  sr_mera_toch_r:=0;
-  for i:=1 to 10 do begin
-    matr_k[i]:=0;
-    matr_oc_L[i]:=0;
-    matr_mera[i]:=0;
-  end;
-  for i:=1 to 10 do begin
-    InitM(A,n);
-    GenerateA(A,n, min_L, max_L, lyambda);
-    Jacobi(n,A,max_aij,matr_k[i],matr_oc_L[i], matr_mera[i], lyambda);
-  end;
-  for i:=1 to 10 do begin
-    sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
-    sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
-    k:=k+matr_k[i];
-  end;
-  sr_oc_toch_L:=sr_oc_toch_L/10;
-  sr_mera_toch_r:=sr_mera_toch_r/10;
-  k:=k div 10;
-  StringGridResult.Cells[1,2] := IntToStr(n);
-  StringGridResult.Cells[2,2] := IntToStr(min_L)+'...'+IntToStr(max_L);
-  StringGridResult.Cells[3,2] := FloatToStr(max_aij);
-  StringGridResult.Cells[4,2] := IntToStr(k);
-  StringGridResult.Cells[5,2] := FloatToStr(sr_oc_toch_L);
-  StringGridResult.Cells[6,2] := FloatToStr(sr_mera_toch_r);
-  n:=10;
-  min_L:=-2;
-  max_L:=2;
-  max_aij:=1E-9;
-  k:=0;
-  sr_oc_toch_L:=0;
-  sr_mera_toch_r:=0;
-  for i:=1 to 10 do begin
-    matr_k[i]:=0;
-    matr_oc_L[i]:=0;
-    matr_mera[i]:=0;
-  end;
-  for i:=1 to 10 do begin
-    InitM(A,n);
-    GenerateA(A,n, min_L, max_L, lyambda);
-    Jacobi(n,A,max_aij,matr_k[i],matr_oc_L[i], matr_mera[i], lyambda);
-  end;
-  for i:=1 to 10 do begin
-    sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
-    sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
-    k:=k+matr_k[i];
-  end;
-  sr_oc_toch_L:=sr_oc_toch_L/10;
-  sr_mera_toch_r:=sr_mera_toch_r/10;
-  k:=k div 10;
-  StringGridResult.Cells[1,3] := IntToStr(n);
-  StringGridResult.Cells[2,3] := IntToStr(min_L)+'...'+IntToStr(max_L);
-  StringGridResult.Cells[3,3] := FloatToStr(max_aij);
-  StringGridResult.Cells[4,3] := IntToStr(k);
-  StringGridResult.Cells[5,3] := FloatToStr(sr_oc_toch_L);
-  StringGridResult.Cells[6,3] := FloatToStr(sr_mera_toch_r);
-  n:=10;
-  min_L:=-50;
-  max_L:=50;
-  max_aij:=1E-5;
-  k:=0;
-  sr_oc_toch_L:=0;
-  sr_mera_toch_r:=0;
- for i:=1 to 10 do begin
-    matr_k[i]:=0;
-    matr_oc_L[i]:=0;
-    matr_mera[i]:=0;
-  end;
- for i:=1 to 10 do begin
-   InitM(A,n);
-   GenerateA(A,n, min_L, max_L, lyambda);
-   Jacobi(n,A,max_aij,matr_k[i],matr_oc_L[i], matr_mera[i], lyambda);
-  end;
- for i:=1 to 10 do begin
-   sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
-   sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
-   k:=k+matr_k[i];
-  end;
-  sr_oc_toch_L:=sr_oc_toch_L/10;
-  sr_mera_toch_r:=sr_mera_toch_r/10;
-  k:=k div 10;
- StringGridResult.Cells[1,4] := IntToStr(n);
- StringGridResult.Cells[2,4] := IntToStr(min_L)+'...'+IntToStr(max_L);
- StringGridResult.Cells[3,4] := FloatToStr(max_aij);
- StringGridResult.Cells[4,4] := IntToStr(k);
- StringGridResult.Cells[5,4] := FloatToStr(sr_oc_toch_L);
- StringGridResult.Cells[6,4] := FloatToStr(sr_mera_toch_r);
-
- n:=10;
- min_L:=-50;
- max_L:=50;
- max_aij:=1E-7;
- k:=0;
- sr_oc_toch_L:=0;
- sr_mera_toch_r:=0;
- for i:=1 to 10 do begin
-    matr_k[i]:=0;
-    matr_oc_L[i]:=0;
-    matr_mera[i]:=0;
-  end;
- for i:=1 to 10 do begin
-   InitM(A,n);
-   GenerateA(A,n, min_L, max_L, lyambda);
-   Jacobi(n,A,max_aij,matr_k[i],matr_oc_L[i], matr_mera[i], lyambda);
-  end;
- for i:=1 to 10 do begin
-   sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
-   sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
-   k:=k+matr_k[i];
-  end;
-  sr_oc_toch_L:=sr_oc_toch_L/10;
-  sr_mera_toch_r:=sr_mera_toch_r/10;
-  k:=k div 10;
- StringGridResult.Cells[1,5] := IntToStr(n);
- StringGridResult.Cells[2,5] := IntToStr(min_L)+'...'+IntToStr(max_L);
- StringGridResult.Cells[3,5] := FloatToStr(max_aij);
- StringGridResult.Cells[4,5] := IntToStr(k);
- StringGridResult.Cells[5,5] := FloatToStr(sr_oc_toch_L);
- StringGridResult.Cells[6,5] := FloatToStr(sr_mera_toch_r);
-
- n:=10;
- min_L:=-50;
- max_L:=50;
- max_aij:=1E-9;
- k:=0;
- sr_oc_toch_L:=0;
- sr_mera_toch_r:=0;
- for i:=1 to 10 do begin
-    matr_k[i]:=0;
-    matr_oc_L[i]:=0;
-    matr_mera[i]:=0;
- end;
- for i:=1 to 10 do begin
-   InitM(A,n);
-   GenerateA(A,n, min_L, max_L, lyambda);
-   Jacobi(n,A,max_aij,matr_k[i],matr_oc_L[i], matr_mera[i], lyambda);
-  end;
- for i:=1 to 10 do begin
-   sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
-   sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
-   k:=k+matr_k[i];
-  end;
-  sr_oc_toch_L:=sr_oc_toch_L/10;
-  sr_mera_toch_r:=sr_mera_toch_r/10;
-  k:=k div 10;
- StringGridResult.Cells[1,6] := IntToStr(n);
- StringGridResult.Cells[2,6] := IntToStr(min_L)+'...'+IntToStr(max_L);
- StringGridResult.Cells[3,6] := FloatToStr(max_aij);
- StringGridResult.Cells[4,6] := IntToStr(k);
- StringGridResult.Cells[5,6] := FloatToStr(sr_oc_toch_L);
- StringGridResult.Cells[6,6] := FloatToStr(sr_mera_toch_r);
-
- n:=30;
- min_L:=-2;
- max_L:=2;
- max_aij:=1E-5;
- k:=0;
- sr_oc_toch_L:=0;
- sr_mera_toch_r:=0;
- n:=20;
- for i:=1 to 10 do begin
-    matr_k[i]:=0;
-    matr_oc_L[i]:=0;
-    matr_mera[i]:=0;
-  end;
- for i:=1 to 10 do begin
-   InitM(A,n);
-   GenerateA(A,n, min_L, max_L, lyambda);
-  Jacobi(n,A,max_aij,matr_k[i],matr_oc_L[i], matr_mera[i], lyambda);
-  end;
- for i:=1 to 10 do begin
-   sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
-   sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
-   k:=k+matr_k[i];
-  end;
-  sr_oc_toch_L:=sr_oc_toch_L/10;
-  sr_mera_toch_r:=sr_mera_toch_r/10;
-  k:=k div 10;
-StringGridResult.Cells[1,7] := IntToStr(n);
- StringGridResult.Cells[2,7] := IntToStr(min_L)+'...'+IntToStr(max_L);
- StringGridResult.Cells[3,7] := FloatToStr(max_aij);
- StringGridResult.Cells[4,7] := IntToStr(k);
- StringGridResult.Cells[5,7] := FloatToStr(sr_oc_toch_L);
- StringGridResult.Cells[6,7] := FloatToStr(sr_mera_toch_r);
-
- n:=30; min_L:=-2; max_L:=2; max_aij:=1E-7; k:=0; sr_oc_toch_L:=0; sr_mera_toch_r:=0;
- n:=20;
- for i:=1 to 10 do begin
-    matr_k[i]:=0;
-    matr_oc_L[i]:=0;
-    matr_mera[i]:=0;
-  end;
- for i:=1 to 10 do begin
-   InitM(A,n);
-   GenerateA(A,n, min_L, max_L, lyambda);
-   Jacobi(n,A,max_aij,matr_k[i],matr_oc_L[i], matr_mera[i], lyambda);
-  end;
- for i:=1 to 10 do
-  begin
-   sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
-   sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
-   k:=k+matr_k[i];
-  end;
-  sr_oc_toch_L:=sr_oc_toch_L/10;
-  sr_mera_toch_r:=sr_mera_toch_r/10;
-  k:=k div 10;
-StringGridResult.Cells[1,8] := IntToStr(n);
- StringGridResult.Cells[2,8] := IntToStr(min_L)+'...'+IntToStr(max_L);
- StringGridResult.Cells[3,8] := FloatToStr(max_aij);
- StringGridResult.Cells[4,8] := IntToStr(k);
- StringGridResult.Cells[5,8] := FloatToStr(sr_oc_toch_L);
- StringGridResult.Cells[6,8] := FloatToStr(sr_mera_toch_r);
-
- n:=30; min_L:=-2; max_L:=2; max_aij:=1E-9; k:=0; sr_oc_toch_L:=0; sr_mera_toch_r:=0;
- n:=20;
- for i:=1 to 10 do begin
-    matr_k[i]:=0;
-    matr_oc_L[i]:=0;
-    matr_mera[i]:=0;
-  end;
- for i:=1 to 10 do begin
-   InitM(A,n);
-   GenerateA(A,n, min_L, max_L, lyambda);
-   Jacobi(n,A,max_aij,matr_k[i],matr_oc_L[i], matr_mera[i], lyambda);
-  end;
- for i:=1 to 10 do begin
-   sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
-   sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
-   k:=k+matr_k[i];
-  end;
-  sr_oc_toch_L:=sr_oc_toch_L/10;
-  sr_mera_toch_r:=sr_mera_toch_r/10;
-  k:=k div 10;
- StringGridResult.Cells[1,9] := IntToStr(n);
- StringGridResult.Cells[2,9] := IntToStr(min_L)+'...'+IntToStr(max_L);
- StringGridResult.Cells[3,9] := FloatToStr(max_aij);
- StringGridResult.Cells[4,9] := IntToStr(k);
- StringGridResult.Cells[5,9] := FloatToStr(sr_oc_toch_L);
- StringGridResult.Cells[6,9] := FloatToStr(sr_mera_toch_r);
-
- n:=30; min_L:=-50; max_L:=50; max_aij:=1E-5; k:=0; sr_oc_toch_L:=0; sr_mera_toch_r:=0;
- n:=20;
- for i:=1 to 10 do begin
-    matr_k[i]:=0;
-    matr_oc_L[i]:=0;
-    matr_mera[i]:=0;
-  end;
- for i:=1 to 10 do begin
-   InitM(A,n);
-   GenerateA(A,n, min_L, max_L, lyambda);
-   Jacobi(n,A,max_aij,matr_k[i],matr_oc_L[i], matr_mera[i], lyambda);
-  end;
- for i:=1 to 10 do begin
-   sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
-   sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
-   k:=k+matr_k[i];
-  end;
-  sr_oc_toch_L:=sr_oc_toch_L/10;
-  sr_mera_toch_r:=sr_mera_toch_r/10;
-  k:=k div 10;
-StringGridResult.Cells[1,10] := IntToStr(n);
- StringGridResult.Cells[2,10] := IntToStr(min_L)+'...'+IntToStr(max_L);
- StringGridResult.Cells[3,10] := FloatToStr(max_aij);
- StringGridResult.Cells[4,10] := IntToStr(k);
- StringGridResult.Cells[5,10] := FloatToStr(sr_oc_toch_L);
- StringGridResult.Cells[6,10] := FloatToStr(sr_mera_toch_r);
-
- n:=30;
- min_L:=-50;
- max_L:=50;
- max_aij:=1E-7;
- k:=0;
- sr_oc_toch_L:=0;
- sr_mera_toch_r:=0;
- n:=20;
- for i:=1 to 10 do begin
-    matr_k[i]:=0;
-    matr_oc_L[i]:=0;
-    matr_mera[i]:=0;
-  end;
- for i:=1 to 10 do begin
-   InitM(A,n);
-   GenerateA(A,n, min_L, max_L, lyambda);
-   Jacobi(n,A,max_aij,matr_k[i],matr_oc_L[i], matr_mera[i], lyambda);
-  end;
- for i:=1 to 10 do begin
-   sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
-   sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
-   k:=k+matr_k[i];
-  end;
-  sr_oc_toch_L:=sr_oc_toch_L/10;
-  sr_mera_toch_r:=sr_mera_toch_r/10;
-  k:=k div 10;
- StringGridResult.Cells[1,11] := IntToStr(n);
- StringGridResult.Cells[2,11] := IntToStr(min_L)+'...'+IntToStr(max_L);
- StringGridResult.Cells[3,11] := FloatToStr(max_aij);
- StringGridResult.Cells[4,11] := IntToStr(k);
- StringGridResult.Cells[5,11] := FloatToStr(sr_oc_toch_L);
- StringGridResult.Cells[6,11] := FloatToStr(sr_mera_toch_r);
-
- n:=30;
- min_L:=-50;
- max_L:=50;
- max_aij:=1E-9;
- k:=0;
- sr_oc_toch_L:=0;
- sr_mera_toch_r:=0;
- n:=20;
- for i:=1 to 10 do begin
-    matr_k[i]:=0;
-    matr_oc_L[i]:=0;
-    matr_mera[i]:=0;
-  end;
- for i:=1 to 10 do begin
-   InitM(A,n);
-   GenerateA(A,n, min_L, max_L, lyambda);
-   Jacobi(n,A,max_aij,matr_k[i],matr_oc_L[i], matr_mera[i], lyambda);
-  end;
- for i:=1 to 10 do begin
-   sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
-   sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
-   k:=k+matr_k[i];
-  end;
-  sr_oc_toch_L:=sr_oc_toch_L/10;
-  sr_mera_toch_r:=sr_mera_toch_r/10;
-  k:=k div 10;
- StringGridResult.Cells[1,12] := IntToStr(n);
- StringGridResult.Cells[2,12] := IntToStr(min_L)+'...'+IntToStr(max_L);
- StringGridResult.Cells[3,12] := FloatToStr(max_aij);
- StringGridResult.Cells[4,12] := IntToStr(k);
- StringGridResult.Cells[5,12] := FloatToStr(sr_oc_toch_L);
- StringGridResult.Cells[6,12] := FloatToStr(sr_mera_toch_r);
+  line := 1;
+  for rank := 1 to Length(Ranks) do
+    for range := 1 to Length(Ranges) do
+      for eps := 1 to Length(Epsilons) do begin
+        k:=0;
+        sr_oc_toch_L:=0;
+        sr_mera_toch_r:=0;
+        for i:=1 to 10 do begin
+          matr_k[i]:=0;
+          matr_oc_L[i]:=0;
+          matr_mera[i]:=0;
+        end;
+        for i:=1 to 10 do begin
+          InitM(A, Ranks[rank]);
+          GenerateA(A, Ranks[rank], -Ranges[range], Ranges[range], lyambda);
+          Jacobi(Ranks[rank], A, Epsilons[eps],matr_k[i],matr_oc_L[i], matr_mera[i], lyambda);
+        end;
+        for i:=1 to 10 do begin
+          sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
+          sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
+          k:=k+matr_k[i];
+        end;
+        sr_oc_toch_L:=sr_oc_toch_L/10;
+        sr_mera_toch_r:=sr_mera_toch_r/10;
+        k:=round (k/10);
+        StringGridResult.Cells[1, line] := IntToStr(Ranks[rank]);
+        StringGridResult.Cells[2, line] := IntToStr(-Ranges[range])+'...'+IntToStr(Ranges[range]);
+        StringGridResult.Cells[3, line] := FloatToStr(Epsilons[eps]);
+        StringGridResult.Cells[4, line] := IntToStr(k);
+        StringGridResult.Cells[5, line] := FloatToStr(sr_oc_toch_L);
+        StringGridResult.Cells[6, line] := FloatToStr(sr_mera_toch_r);
+        line := line + 1;
+      end;
 end;
 
 end.
-
-
-
-
-
-
