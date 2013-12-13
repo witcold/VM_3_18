@@ -224,14 +224,14 @@ begin
   T:=MultiMatr(T, Tnew, n);
 end;
 
-procedure pogresh (lambda, sobst:TVector; var pogr:TType; n:integer);
+procedure Pogresh (lambda, sobst:TVector; var pogr: TType; n: Integer);
 var
   i: Integer;
 begin
   pogr:=0;
   for i:=0 to n-1 do
-   if abs(lambda[i]-sobst[i])>pogr then
-     pogr:=abs(lambda[i]-sobst[i]);
+    if abs(lambda[i]-sobst[i]) > pogr then
+      pogr:=abs(lambda[i] - sobst[i]);
 end;
 
 Procedure TFormMain.Jacobi (n:integer; A:TMatrix; max_aij:TType; var k:integer; var sr_oc_toch_L:TType; var sr_mera_toch_r:TType; lyambda:TVector);
@@ -308,39 +308,38 @@ end;
 
 procedure TFormMain.ButtonTestClick(Sender: TObject);
 var
-  k, i: integer;
+  i, j, k, t, line, iterations: integer;
   sr_oc_toch_L, sr_mera_toch_r: TType;
   lambda: TVector;
-  matr_oc_L, matr_mera: array[1..Tests] of TType;
-  matr_k: array[1..Tests] of integer;
-  rank, range, eps, line: Integer;
+  matr_oc_L, matr_mera: TType;
+  matr_k: integer;
 begin
   line := 1;
-  for rank := 1 to Length(Ranks) do
-    for range := 1 to Length(Ranges) do
-      for eps := 1 to Length(Epsilons) do begin
-        k:=0;
+  for i := 1 to Length(Ranks) do
+    for j := 1 to Length(Ranges) do
+      for k := 1 to Length(Epsilons) do begin
+        iterations := 0;
         sr_oc_toch_L:=0;
         sr_mera_toch_r:=0;
-        for i:=1 to Tests do begin
-          matr_k[i]:=0;
-          matr_oc_L[i]:=0;
-          matr_mera[i]:=0;
-          InitM(A, Ranks[rank]);
-          GenerateA(A, Ranks[rank], -Ranges[range], Ranges[range], lambda);
-          Jacobi(Ranks[rank], A, Epsilons[eps],matr_k[i],matr_oc_L[i], matr_mera[i], lambda);
-          sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L[i];
-          sr_mera_toch_r:=sr_mera_toch_r+matr_mera[i];
-          k:=k+matr_k[i];
+        for t := 1 to Tests do begin
+          matr_k:=0;
+          matr_oc_L:=0;
+          matr_mera:=0;
+          InitM(A, Ranks[i]);
+          GenerateA(A, Ranks[i], -Ranges[j], Ranges[j], lambda);
+          Jacobi(Ranks[i], A, Epsilons[k],matr_k,matr_oc_L, matr_mera, lambda);
+          sr_oc_toch_L:=sr_oc_toch_L+matr_oc_L;
+          sr_mera_toch_r:=sr_mera_toch_r+matr_mera;
+          iterations := iterations + matr_k;
         end;
         sr_oc_toch_L:=sr_oc_toch_L/Tests;
         sr_mera_toch_r:=sr_mera_toch_r/Tests;
-        k:=round(k/Tests);
+        iterations := round(iterations / Tests);
         with StringGridResult do begin
-          Cells[1, line] := IntToStr(Ranks[rank]);
-          Cells[2, line] := IntToStr(-Ranges[range])+'...'+IntToStr(Ranges[range]);
-          Cells[3, line] := FloatToStr(Epsilons[eps]);
-          Cells[4, line] := IntToStr(k);
+          Cells[1, line] := IntToStr(Ranks[i]);
+          Cells[2, line] := IntToStr(-Ranges[j])+'...'+IntToStr(Ranges[j]);
+          Cells[3, line] := FloatToStr(Epsilons[k]);
+          Cells[4, line] := IntToStr(iterations);
           Cells[5, line] := FloatToStr(sr_oc_toch_L);
           Cells[6, line] := FloatToStr(sr_mera_toch_r);
         end;
